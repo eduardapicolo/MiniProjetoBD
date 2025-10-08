@@ -1,6 +1,7 @@
 from pymongo import MongoClient
+from connectionString import connectionString
 
-uri = "mongodb+srv://adm:adm777@mensageria.dmgoipc.mongodb.net/"
+uri = connectionString
 client = MongoClient(uri)
 
 def userAuthentication(user, password):
@@ -12,10 +13,10 @@ def userAuthentication(user, password):
         account = users.find_one(query)
 
         if account:
-            print(f"Bem-vindo, {account['nomeDeUsuario']}")
+            #Mensagem de "boas vindas"
             return True
         else:
-            print(f"Senha incorreta.")
+            #Mensagem de erro ("Email ou senha incorreto.")
             return False
 
     except Exception as e:
