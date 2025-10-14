@@ -18,7 +18,10 @@ def userAuthentication(email, password):
         database = client.get_database("Mensageria")
         users = database.get_collection("Users")
 
-        query = { "email": email, "senha": password }
+        query = { 
+                  "email": email, 
+                  "senha": password 
+                }
         account = users.find_one(query)
 
         if account:
@@ -50,18 +53,51 @@ def getMessages(User):
         if messagesFound:
             listOfMessages = []
             for m in messagesFound:
-                messageAux = Message(m['_id'],
-                                     m['from'],
-                                     m['to'],
-                                     m['titulo'],
-                                     m['mensagem'],
-                                     m['status'])
+                if m['status'] == False:
+                    messageAux = Message(m['_id'],
+                                         m['from'],
+                                         m['to'],
+                                         m['titulo'],
+                                         m['mensagem'],
+                                         "Nao lida.")
+                    
+                    listOfMessages.append(messageAux)
                 
-                listOfMessages.append(messageAux)
-
+                elif m['status'] == True:
+                    messageAux = Message(m['_id'],
+                                         m['from'],
+                                         m['to'],
+                                         m['titulo'],
+                                         m['mensagem'],
+                                         "Lida.")
+                    listOfMessages.append(messageAux)
+            
             return listOfMessages
 
         return None
 
     except Exception as e:
         raise Exception("Não foi possível encontrar o documento devido ao seguinte erro: ", e)
+
+#TODO ADICIONAR CRIPTOGRAFIA
+def sendMessage(User, to, title, text):
+    if User == None or to == None or title == None or text == None:
+        return False
+    
+    try:
+        database = client.get_database("Mensageria")
+        messages = database.get_collection("Messages")
+
+        message = {
+            "from": User.username,
+            "to": to,
+            "titulo": title,
+            "mensagem": text,
+            "status": False
+        }
+
+        messages.insert_one(message)
+        return True
+
+    except Exception as e:
+        raise Exception("Não foi possível inserir o documento devido ao seguinte erro: ", e)
