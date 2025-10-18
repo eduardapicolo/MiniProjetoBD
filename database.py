@@ -1,5 +1,7 @@
 from pymongo import MongoClient
 from connectionString import connectionString
+from crypto import derive_key
+from cryptography.fernet import Fernet, InvalidToken
 from user import User
 from message import Message
 
@@ -38,8 +40,9 @@ def userAuthentication(email, password):
         raise Exception("Não foi possível encontrar o documento devido ao seguinte erro: ", e)
 
 
-#TODO ADICIONAR DESCRIPTOGRAFIA
-def getMessages(User):
+
+#Busca as mensagens onde o Status é FALSE apenas
+def getUnreadMessages(User):
     if User == None:
         return None
     
@@ -47,13 +50,13 @@ def getMessages(User):
         database = client.get_database("Mensageria")
         messages = database.get_collection("Messages")
 
-        query = { "to": User.username }
+        query = { "to": User.username,
+                 "status": False }
         messagesFound = messages.find(query)
 
         if messagesFound:
             listOfMessages = []
             for m in messagesFound:
-                if m['status'] == False:
                     messageAux = Message(m['_id'],
                                          m['from'],
                                          m['to'],
@@ -61,15 +64,6 @@ def getMessages(User):
                                          m['mensagem'],
                                          "Nao lida.")
                     
-                    listOfMessages.append(messageAux)
-                
-                elif m['status'] == True:
-                    messageAux = Message(m['_id'],
-                                         m['from'],
-                                         m['to'],
-                                         m['titulo'],
-                                         m['mensagem'],
-                                         "Lida.")
                     listOfMessages.append(messageAux)
             
             return listOfMessages
@@ -79,12 +73,28 @@ def getMessages(User):
     except Exception as e:
         raise Exception("Não foi possível encontrar o documento devido ao seguinte erro: ", e)
 
-#TODO ADICIONAR CRIPTOGRAFIA
-def sendMessage(User, to, title, text):
+#Com criptografia
+def sendMessage(User, to, title, text, password_key: str):
     if User == None or to == None or title == None or text == None:
         return False
     
+    """
+    VERSAO SENHA GERADA
     try:
+        key = load_key()
+        if key is None:
+            raise Exception("Chave 'secret.key' não encontrada. Gere a chave primeiro.")
+        
+        fernet = Fernet(key)
+        
+        encrypted_text = fernet.encrypt(text.encode())
+        """
+    try:
+        fernet_key = derive_key(password_key)
+        fernet = Fernet(fernet_key)
+        
+        encrypted_text = fernet.encrypt(text.encode())
+
         database = client.get_database("Mensageria")
         messages = database.get_collection("Messages")
 
@@ -101,3 +111,56 @@ def sendMessage(User, to, title, text):
 
     except Exception as e:
         raise Exception("Não foi possível inserir o documento devido ao seguinte erro: ", e)
+
+"""
+FUNCAO PARA DESCRIPTOGRAFAR SENHA GERADA AUTOMATICAMENTE
+#função para descriptografar
+def decryptMessage(encrypted_text, key_string):
+
+    if not isinstance(key_string, bytes):
+        key_bytes = key_string.encode()
+    else:
+        key_bytes = key_string
+
+    try:
+        fernet = Fernet(key_bytes)
+        decrypted_text = fernet.decrypt(encrypted_text).decode()
+        return decrypted_text
+    except InvalidToken:
+        return False
+    except Exception as e:
+        print(f"Erro ao descriptografar: {e}")
+        return False
+"""
+
+#função para descriptografar
+def decryptMessage(encrypted_text, password_key: str):
+
+    try:
+        fernet_key = derive_key(password_key)
+        fernet = Fernet(fernet_key)
+        
+        decrypted_text = fernet.decrypt(encrypted_text).decode()
+        return decrypted_text
+    except InvalidToken:
+        return False
+    except Exception as e:
+        print(f"Erro ao descriptografar: {e}")
+        return False
+    
+#função para mudar o STATUS após a msg ser lida        
+def markMessageAsRead(message_id):
+
+    try:
+        database = client.get_database("Mensageria")
+        messages = database.get_collection("Messages")
+        
+        query = { "_id": message_id }
+        update = { "$set": { "status": True } }
+        
+        result = messages.update_one(query, update)
+        return result.modified_count > 0
+        
+    except Exception as e:
+        print(f"Erro ao atualizar status da mensagem: {e}")
+        return False    
