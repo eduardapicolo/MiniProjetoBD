@@ -88,7 +88,7 @@ def sendMessage(User, to, title, text, password_key: str):
         fernet = Fernet(key)
         
         encrypted_text = fernet.encrypt(text.encode())
-        """
+    """
     try:
         fernet_key = derive_key(password_key)
         fernet = Fernet(fernet_key)
@@ -99,10 +99,11 @@ def sendMessage(User, to, title, text, password_key: str):
         messages = database.get_collection("Messages")
 
         message = {
+            "_id": messages.estimated_document_count() + 1,
             "from": User.username,
             "to": to,
             "titulo": title,
-            "mensagem": text,
+            "mensagem": encrypted_text,
             "status": False
         }
 

@@ -1,5 +1,6 @@
 import database
 import viewMessages
+import sendMessages
 
 def main():
     print ("--- BEM-VINDO(A) AO SISTEMA DE MENSAGERIA ---")
@@ -28,8 +29,7 @@ def main():
         if choice == '1':
             viewMessages.viewNewMessages(currentUser)
         elif choice == '2':
-            print("fazer..")
-            #TODO enviar msg
+            sendMessages.sendNewMessage(currentUser)
         elif choice == '3':
             print("Saindo...")
             break
