@@ -1,5 +1,4 @@
 import database
-import getpass
 
 def viewNewMessages(user):
 
@@ -39,7 +38,7 @@ def viewNewMessages(user):
     print(f"--- Lendo Mensagem de: {selected_message.sentBy} ---")
     print(f"Título: {selected_message.title}\n")
     
-    password_key_input = getpass.getpass("DIGITE A CHAVE SECRETA (combinada com o remetente): ")
+    password_key_input = input("DIGITE A CHAVE SECRETA (combinada com o remetente): ")
 
     decrypted_content = database.decryptMessage(selected_message.text, password_key_input)
 
@@ -55,31 +54,3 @@ def viewNewMessages(user):
         print("\n(Mensagem marcada como lida)")
 
     input("\nPressione Enter para voltar ao menu...")
-
-    """
-    VERSAO SENHA GERADA AUTOMATICAMENTE 
-    # 3. "SOLICITA A CHAVE"
-    print(f"--- Lendo Mensagem de: {selected_message.sentBy} ---")
-    print(f"Título: {selected_message.title}\n")
-    
-    # A chave digitada DEVE ser a mesma gerada pelo crypto.py
-    key_input = getpass.getpass("SOLICITA A CHAVE de descriptografia: ")
-
-    # 4. "Chave correta" / "acessa a msg"
-    # selected_message.text contém os bytes criptografados
-    decrypted_content = database.decryptMessage(selected_message.text, key_input)
-
-    if decrypted_content == False:
-        print("\n--- !! CHAVE INCORRETA !! ---")
-        print("Acesso à mensagem negado.")
-    else:
-        print("\n--- CHAVE CORRETA ---")
-        print("Mensagem descriptografada:\n")
-        print(decrypted_content)
-        
-        
-        database.markMessageAsRead(selected_message.mId)
-        print("\n(Mensagem marcada como lida)")
-
-    input("\nPressione Enter para voltar ao menu...")
-    """
