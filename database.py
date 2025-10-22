@@ -70,6 +70,17 @@ def registerUser(email, password, username):
     except Exception as e:
         print(f"Erro ao registrar usuário: {e}")
         return False
+    
+def userExists(username):
+    try:
+        database = client.get_database("Mensageria")
+        users = database.get_collection("Users")
+        query = {"nomeDeUsuario": username}
+        account = users.find_one(query)
+        return account is not None
+    except Exception as e:
+        print(f"Erro ao verificar usuário: {e}")
+        return False
 
 #Busca as mensagens onde o Status é FALSE apenas
 def getUnreadMessages(User):
