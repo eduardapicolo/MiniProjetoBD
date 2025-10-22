@@ -65,7 +65,6 @@ def main():
 
         elif choice == '2':
             sendMessages.sendMessages(currentUser)
-
         elif choice == '3':
             print("\n Encerrando sessão...")
             currentUser = None
