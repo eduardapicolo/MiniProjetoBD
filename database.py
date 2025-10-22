@@ -39,7 +39,37 @@ def userAuthentication(email, password):
     except Exception as e:
         raise Exception("Não foi possível encontrar o documento devido ao seguinte erro: ", e)
 
+def registerUser(email, password, username):
+    if not email or not password or not username:
+        print("Todos os campos são obrigatórios.")
+        return False
 
+    try:
+        database = client.get_database("Mensageria")
+        users = database.get_collection("Users")
+
+        if users.find_one({"email": email}):
+            print("\n Email já cadastrado. Tente outro.")
+            return False
+        
+        if users.find_one({"nomeDeUsuario": username}):
+            print("\n Nome de usuário já em uso. Escolha outro.")
+            return False
+
+        new_user = {
+            "_id": users.estimated_document_count() + 1,
+            "email": email,
+            "senha": password,
+            "nomeDeUsuario": username
+        }
+
+        users.insert_one(new_user)
+        print("\nUsuário cadastrado com sucesso!")
+        return True
+
+    except Exception as e:
+        print(f"Erro ao registrar usuário: {e}")
+        return False
 
 #Busca as mensagens onde o Status é FALSE apenas
 def getUnreadMessages(User):
