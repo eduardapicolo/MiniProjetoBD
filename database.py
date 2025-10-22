@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import accountCrypto
 from connectionString import connectionString
 from crypto import derive_key
 from cryptography.fernet import Fernet, InvalidToken
@@ -20,18 +21,25 @@ def userAuthentication(email, password):
         database = client.get_database("Mensageria")
         users = database.get_collection("Users")
 
-        query = { 
-                  "email": email, 
-                  "senha": password 
-                }
+        query = { "email": email }
         account = users.find_one(query)
 
         if account:
-            currentUser = User(account['_id'],
-                               account['email'],
-                               account['senha'],
-                               account['nomeDeUsuario'])
-            return currentUser
+            encrypted_password = account['senha']
+            key = accountCrypto.load_key()
+
+            if not key:
+                print("Chave de criptografia não encontrada. Não é possível autenticar.")
+                return None
+            
+            decrypted_password = accountCrypto.decrypt_password(encrypted_password, key)
+
+            if decrypted_password == password:
+                user = User(account['_id'],
+                            account['email'],
+                            account['senha'],
+                            account['nomeDeUsuario'])
+                return user
         
         else:
             return None
@@ -56,15 +64,16 @@ def registerUser(email, password, username):
             print("\n Nome de usuário já em uso. Escolha outro.")
             return False
 
+        encrypted_password = accountCrypto.encrypt_password(password, accountCrypto.load_key())
+
         new_user = {
             "_id": users.estimated_document_count() + 1,
             "email": email,
-            "senha": password,
+            "senha": encrypted_password,
             "nomeDeUsuario": username
         }
 
         users.insert_one(new_user)
-        print("\nUsuário cadastrado com sucesso!")
         return True
 
     except Exception as e:

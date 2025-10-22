@@ -37,7 +37,7 @@ def main():
 
             success = database.registerUser(email, password, username)
             if success:
-                print("\n Usuário cadastrado com sucesso!")
+                print("\nUsuário cadastrado com sucesso!")
                 print("Agora você pode fazer login com suas credenciais.")
             else:
                 print("\n Falha ao cadastrar. Tente novamente.")
